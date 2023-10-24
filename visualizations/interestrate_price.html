@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>US Interest Rate vs. Home Price Index 2000-2020</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <div id="chart"></div>
+    <script>
+
+        var margin = {top: 50, right: 100, bottom: 50, left: 75};
+        var width = 800 - margin.left - margin.right;
+        var height = 500 - margin.top - margin.bottom;
+
+        var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform",
+                        "translate(" + margin.left + "," + margin.top + ")");
+
+        // Load the data
+        d3.csv("US_InterestRate_HomePriceIndx.csv").then(function(data) {
+
+            data.forEach(function(d) {
+                d.Year = +d.Year;
+                d['Home Price Index'] = +d['Home Price Index'];
+                d['AVG Interest'] = +d['AVG Interest'];
+            });
+
+        var xDomain = d3.extent(data, function(d) { return d.Year; });
+        var y1Domain = d3.extent(data, function(d) { return d['Home Price Index']; });
+        var y2Domain = d3.extent(data, function(d) { return d['AVG Interest']; });
+
+        var x = d3.scaleLinear()
+                    .domain(xDomain)
+                    .range([ 0, width ]);  
+        svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x).tickFormat(d3.format("d")));
+
+        var y1 = d3.scaleLinear()
+            .domain(y1Domain)
+            .range([ height, 0 ]);
+        svg.append("g")
+            .call(d3.axisLeft(y1));
+
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.line()
+            .x(function(d) { return x(d.Year) })
+            .y(function(d) { return y1(d['Home Price Index']) })
+            )
+
+        var y2 = d3.scaleLinear()
+            .domain(y2Domain)
+            .range([ height, 0 ]);
+        svg.append("g")
+            .attr("transform", "translate(" + width + ", 0)")
+            .call(d3.axisRight(y2));
+
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "red")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.line()
+            .x(function(d) { return x(d.Year) })
+            .y(function(d) { return y2(d['AVG Interest']) })
+            )
+
+        svg.append("text")
+            .attr("x", (width / 2))
+            .attr("y", 0 - (margin.top / 2))
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px")
+            .text("US Home Prices and Interest Rates 2000-2021");
+
+        svg.append("text")
+            .attr("transform", "translate(" + (width/2) + " ," + (height + margin.top + 0) + ")")
+            .style("text-anchor", "middle")
+            .text("Year");
+
+        svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin.left)
+            .attr("x",0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Home Price Index");
+
+        svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", width + margin.right/3)
+            .attr("x",0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("AVG Interest");
+
+        svg.append("rect")
+            .attr("x", width - 150)
+            .attr("y", 10)
+            .attr("width", 10)
+            .attr("height", 10)
+            .attr("fill", "steelblue");
+        svg.append("text")
+            .attr("x", width - 130)
+            .attr("y", 20)
+            .style("font-size", "12px")
+            .text("Home Price Index");
+
+        svg.append("rect")
+            .attr("x", width - 150)
+            .attr("y", 30)
+            .attr("width", 10)
+            .attr("height", 10)
+            .attr("fill", "red");
+        svg.append("text")
+            .attr("x", width - 130)
+            .attr("y", 40)
+            .style("font-size", "12px")
+            .text("AVG Interest");
+
+        });
+
+    </script>
+</body>
+</html>

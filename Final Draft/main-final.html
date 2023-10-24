@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSE6242 - Team 127: Class Project</title>
+    <link rel="stylesheet" href="hstyles.css">
+    <!--link rel="stylesheet" type="text/css" href="./styles/Styles.css"-->
+</head>
+<body>
+
+    <!--Top of the page: Project title & page navigation-->
+	<div id="mainbar" class="menubar">
+        <table width="100%"  style="border-collapse: collapse; background-color: #546A7B;"> 
+            <tr >
+                <td class="proj num">
+                    <p><b>Team 127</b></p>
+                </td>
+                <td class="proj title" align="center" style="width: 80%">
+                    <p style="font-size: 20px"><b>Housing Market Dynamics</b></p>
+                </td>
+                <td class="menubarright" align="right">
+                    <b>Main</b> |
+                    <a href="./stats-final.html">Stats</a> | 
+                    <a href="./info-final.html">Info</a>&nbsp;
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!--header>
+        <h1>House Market Dynamics</h1>
+    </header-->
+    <div class="container">
+        <div id="chart1" class="map-container"></div>
+        <div id="chart2" class="chart"></div>
+        <div id="chart3" class="text">
+            <h3>Instructions:</h3>
+            <p style="text-align: justify; margin-right: 50px;">
+                Please select a state using the map above. This allows you to see population, employment, 
+                and average house price trends for that state from 2000 to 2020.
+                <br><br> To see the SARIMA average house price projection for 2024, 
+                pick a specific city in the dropdown area to the right and wait a few seconds for the 
+                model to compute the graph. The projected house price will be in orange.
+                <br><br>Click anywhere else on the map to reset the chart and start over.
+            </p>
+        </div>
+        <div id="chart4" class="prediction"></div>
+    </div>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+    <script src="house_market_dynamics_script.js"></script>
+</body>
+</html>

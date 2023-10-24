@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" type="text/css" href="./styles/Styles.css">
+    <link rel="stylesheet" type="text/css" href="./styles/ChartStyles.css">
+    <link rel="stylesheet" type="text/css" href="./styles/TipStyles.css">
+
+    <script type="text/javascript" src="./lib/d3.v5.min.js"></script>
+    <script type="text/javascript" src="./lib/topojson.v2.min.js"></script>
+    <script type="text/javascript" src="./lib/d3-tip.min.js"></script>
+    
+    <script defer>
+
+    var svg = null;
+    var colorScheme = null;
+    var tooltip = null;
+    var margin = null;
+    var width = null;
+    var height = null;
+    var projection = null;
+    var path = null;
+
+    // this function should be called once the data from files have been read
+    // world: topojson from world_countries.json
+    // gameData: data from ratings-by-country.csv
+    function ready(error, world, gameData) {
+
+        if (error) throw error;
+
+        console.log(world)
+        console.log(gameData)
+
+        // enter code to extract all unique games from gameData
+        var games = Array.from(new Set(gameData.map(d => d.Game))).sort();
+        console.log(games)
+
+        // enter code to append the game options to the dropdown
+        var gameSelect = d3.select('#gameDropdown');
+        games.forEach(game => gameSelect.append('option').attr('value', game).text(game));
+
+        // event listener for the dropdown. Update choropleth and legend when selection changes. Call createMapAndLegend() with required arguments.
+        gameSelect.on('change', () => {
+            console.log("CHANGED VALUE: ")
+            console.log(gameSelect.property('value'))
+            createMapAndLegend(world, gameData, gameSelect.property('value'));
+        });
+
+        // create Choropleth with default option. Call createMapAndLegend() with required arguments. 
+        createMapAndLegend(world, gameData, games[0]);
+}
+
+// this function should create a Choropleth and legend using the world and gameData arguments for a selectedGame
+// also use this function to update Choropleth and legend when a different game is selected from the dropdown
+function createMapAndLegend(world, gameData, selectedGame) {
+svg.selectAll("*").remove();
+
+//console.log(world.features)
+//console.log(gameData)
+var get_game_data = gameData.filter(function (d) {
+    return d.Game === selectedGame;
+});
+var avg_ratings = get_game_data.map(d => d['Average Rating']);
+console.log(avg_ratings);
+
+var colorScale = d3.scaleQuantile()
+    .domain(avg_ratings)
+    .range(colorScheme);
+
+var legend = svg.append("g")
+    .attr("id", "legend")
+    .attr("transform", `translate(${width},30)`);
+
+var quantileThresholds = colorScale.quantiles();
+console.log(quantileThresholds);
+
+min_val = d3.min(avg_ratings, function (d) { return parseFloat(d); }).toFixed(2);
+
+legend.append("text").text(`${min_val} - ${quantileThresholds[0].toFixed(2)}`)
+    .attr("font-size", "14px");
+legend.append("rect")
+    .attr("width", 14)
+    .attr("height", 14)
+    .attr("transform", "translate(-17, -12)")
+    .attr("fill", colorScheme[0]);
+
+legend.append("text").text(`${quantileThresholds[0].toFixed(2)} - ${quantileThresholds[1].toFixed(2)}`)
+    .attr("transform", "translate(0, 20)")
+    .attr("font-size", "14px");
+legend.append("rect")
+    .attr("width", 14)
+    .attr("height", 14)
+    .attr("transform", "translate(-17, 8)")
+    .attr("fill", colorScheme[1]);
+
+legend.append("text").text(`${quantileThresholds[1].toFixed(2)} - ${quantileThresholds[2].toFixed(2)}`)
+    .attr("transform", "translate(0, 40)")
+    .attr("font-size", "14px");
+legend.append("rect")
+    .attr("width", 14)
+    .attr("height", 14)
+    .attr("transform", "translate(-17, 28)")
+    .attr("fill", colorScheme[2]);
+
+legend.append("text").text(`${quantileThresholds[2].toFixed(2)} - 10.00`)
+    .attr("transform", "translate(0, 60)")
+    .attr("font-size", "14px");
+legend.append("rect")
+    .attr("width", 14)
+    .attr("height", 14)
+    .attr("transform", "translate(-17, 48)")
+    .attr("fill", colorScheme[3]);
+
+
+tooltip.html(function (d) {
+    //console.log(gameData)
+    var selected_data = get_game_data.find(c => c.Country === d.properties.name);
+    console.log(selected_data)
+    var country = d.properties.name;
+    var game = selectedGame;
+    var rating = selected_data ? selected_data['Average Rating'] : 'N/A';
+    var numUsers = selected_data ? selected_data['Number of Users'] : 'N/A';
+
+    //console.log(country, game, rating, numUsers)
+
+    return `
+        <p>Country: ${country}</p>
+        <p>Game: ${game}</p>
+        <p>Avg Rating: ${rating}</p>
+        <p>Number of Ratings: ${numUsers}</p>
+    `;
+});
+
+svg.call(tooltip);
+
+svg.selectAll("path")
+    .data(world.features)
+    .enter().append("path")
+    .attr("fill", function (d) {
+        //console.log(d.properties.name, selectedGame)
+        //console.log(gameData.find(c => c.Game === selectedGame && c.Country === d.properties.name));
+        //console.log(gameData.find(c => (c.Game === selectedGame && c.Country === d.properties.name))['Average Rating']);
+        country_found = gameData.find(c => (c.Game === selectedGame && c.Country === d.properties.name))
+        //console.log(country_found)
+        if (country_found == undefined) {
+            return "grey";
+        }
+        else {
+            return colorScale(country_found['Average Rating']);
+        }
+
+    })
+    .attr("d", path)
+    .on('mouseover', function (d) {
+        tooltip.show(d);
+        tooltip.style('left', d3.event.pageX + 'px')
+            .style('top', d3.event.pageY + 'px');
+
+    })
+    .on('mouseout', tooltip.hide);
+
+
+}
+
+
+
+    function USA()
+         {
+            //var map = d3.choropleth().geofile('./d3-geomap/topojson/countries/USA.json').projection(d3.geoAlbersUsa).column('2012').unitId('fips').scale(1000).legend(true);
+
+            //d3.csv('./data/states.csv').then(data => { map.draw(d3.select('#USAMap').datum(data)); });
+
+            //var map = d3.geomap().geofile('./d3-geomap/topojson/world/countries.json').draw(d3.select('#USAMap'));
+
+        // enter code to define margin and dimensions for svg
+        margin = ({ top: 0, right: 30, bottom: 130, left: 40 });
+        width = 960 - margin.left - margin.right;
+        height = 500 - margin.top - margin.bottom;
+
+        // enter code to create svg
+        svg = d3.select("#USAMap")
+            .append("svg")
+            .attr("id", "countries")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+        // enter code to create color scale
+        colorScheme = ['#e6f299', '#a1dab4', '#41b6c4', '#225ea8'];
+
+        // enter code to define tooltip
+        tooltip = d3.tip()
+            .attr('id', 'tooltip')
+            .offset([10, 10]);
+        // enter code to define projection and path required for Choropleth
+        // For grading, set the name of functions for projection and path as "projection" and "path"
+        projection = d3.geoNaturalEarth1()
+        path = d3.geoPath().projection(projection);
+
+        Promise.all([
+            d3.json("./data/world_countries.json"),
+            d3.csv("./data/ratings-by-country.csv")
+        ]).then(function (data) {
+            var world = data[0];
+            var gameData = data[1];
+            ready(null, world, gameData);
+        }).catch(function (error) {
+            console.log(error);
+        });
+
+
+         }
+
+
+
+
+
+    function Chart1()
+        {
+         const width = 960;
+const height = 500;
+const margin = 5;
+const padding = 5;
+const adj = 30;
+// we are appending SVG first
+const svg = d3.select("div#Chart1").append("svg").attr("preserveAspectRatio", "xMinYMin meet").attr("viewBox", "-" + adj + " -" + adj + " " + (width + adj *3) + " " + (height + adj*3))
+    .style("padding", padding)
+    .style("margin", margin)
+    .classed("svg-content", true);
+
+//-----------------------------DATA-----------------------------//
+const timeConv = d3.timeParse("%d-%b-%Y");
+const dataset = d3.csv("./data/chart1.csv");
+dataset.then(function(data) {
+    var slices = data.columns.slice(1).map(function(id) {
+        return {
+            id: id,
+            values: data.map(function(d){
+                return {
+                    date: timeConv(d.date),
+                    measurement: +d[id]
+                };
+            })
+        };
+    });
+
+//----------------------------SCALES----------------------------//
+const xScale = d3.scaleTime().range([0,width]);
+const yScale = d3.scaleLinear().rangeRound([height, 0]);
+xScale.domain(d3.extent(data, function(d){
+    return timeConv(d.date)}));
+yScale.domain([(0), d3.max(slices, function(c) {
+    return d3.max(c.values, function(d) {
+        return d.measurement + 4; });
+        })
+    ]);
+
+//-----------------------------AXES-----------------------------//
+const yaxis = d3.axisLeft()
+    .ticks((slices[0].values).length)
+    .scale(yScale);
+
+const xaxis = d3.axisBottom()
+    .ticks(d3.timeDay.every(1))
+    .tickFormat(d3.timeFormat('%b %d'))
+    .scale(xScale);
+
+//----------------------------LINES-----------------------------//
+const line = d3.line()
+    .x(function(d) { return xScale(d.date); })
+    .y(function(d) { return yScale(d.measurement); }); 
+
+let id = 0;
+const ids = function () {
+    return "line-"+id++;
+}  
+//-------------------------2. DRAWING---------------------------//
+//-----------------------------AXES-----------------------------//
+svg.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xaxis);
+
+svg.append("g")
+    .attr("class", "axis")
+    .call(yaxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("dy", ".75em")
+    .attr("y", 6)
+    .style("text-anchor", "end")
+    .text("Frequency");
+
+//----------------------------LINES-----------------------------//
+const lines = svg.selectAll("lines")
+    .data(slices)
+    .enter()
+    .append("g");
+
+    lines.append("path")
+    .attr("class", ids)
+    .attr("d", function(d) { return line(d.values); });
+
+    lines.append("text")
+    .attr("class","serie_label")
+    .datum(function(d) {
+        return {
+            id: d.id,
+            value: d.values[d.values.length - 1]}; })
+    .attr("transform", function(d) {
+            return "translate(" + (xScale(d.value.date) + 10)  
+            + "," + (yScale(d.value.measurement) + 5 ) + ")"; })
+    .attr("x", 5)
+    .text(function(d) { return ("Serie ") + d.id; });
+
+});
+       
+        }
+
+
+    function Chart2()
+        {
+         const width = 960;
+const height = 500;
+const margin = 5;
+const padding = 5;
+const adj = 30;
+// we are appending SVG first
+const svg = d3.select("div#Chart2").append("svg").attr("preserveAspectRatio", "xMinYMin meet").attr("viewBox", "-" + adj + " -" + adj + " " + (width + adj *3) + " " + (height + adj*3))
+    .style("padding", padding)
+    .style("margin", margin)
+    .classed("svg-content", true);
+
+//-----------------------------DATA-----------------------------//
+const timeConv = d3.timeParse("%d-%b-%Y");
+const dataset = d3.csv("./data/chart2.csv");
+dataset.then(function(data) {
+    var slices = data.columns.slice(1).map(function(id) {
+        return {
+            id: id,
+            values: data.map(function(d){
+                return {
+                    date: timeConv(d.date),
+                    measurement: +d[id]
+                };
+            })
+        };
+    });
+
+//----------------------------SCALES----------------------------//
+const xScale = d3.scaleTime().range([0,width]);
+const yScale = d3.scaleLinear().rangeRound([height, 0]);
+xScale.domain(d3.extent(data, function(d){
+    return timeConv(d.date)}));
+yScale.domain([(0), d3.max(slices, function(c) {
+    return d3.max(c.values, function(d) {
+        return d.measurement + 4; });
+        })
+    ]);
+
+//-----------------------------AXES-----------------------------//
+const yaxis = d3.axisLeft()
+    .ticks((slices[0].values).length)
+    .scale(yScale);
+
+const xaxis = d3.axisBottom()
+    .ticks(d3.timeDay.every(1))
+    .tickFormat(d3.timeFormat('%b %d'))
+    .scale(xScale);
+
+//----------------------------LINES-----------------------------//
+const line = d3.line()
+    .x(function(d) { return xScale(d.date); })
+    .y(function(d) { return yScale(d.measurement); }); 
+
+let id = 0;
+const ids = function () {
+    return "line-"+id++;
+}  
+//-------------------------2. DRAWING---------------------------//
+//-----------------------------AXES-----------------------------//
+svg.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xaxis);
+
+svg.append("g")
+    .attr("class", "axis")
+    .call(yaxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("dy", ".75em")
+    .attr("y", 6)
+    .style("text-anchor", "end")
+    .text("Frequency");
+
+//----------------------------LINES-----------------------------//
+const lines = svg.selectAll("lines")
+    .data(slices)
+    .enter()
+    .append("g");
+
+    lines.append("path")
+    .attr("class", ids)
+    .attr("d", function(d) { return line(d.values); });
+
+    lines.append("text")
+    .attr("class","serie_label")
+    .datum(function(d) {
+        return {
+            id: d.id,
+            value: d.values[d.values.length - 1]}; })
+    .attr("transform", function(d) {
+            return "translate(" + (xScale(d.value.date) + 10)  
+            + "," + (yScale(d.value.measurement) + 5 ) + ")"; })
+    .attr("x", 5)
+    .text(function(d) { return ("Serie ") + d.id; });
+
+});
+    
+        }
+
+
+    function Chart3()
+        {
+
+         const width = 960;
+const height = 500;
+const margin = 5;
+const padding = 5;
+const adj = 30;
+// we are appending SVG first
+const svg = d3.select("div#Chart3").append("svg").attr("preserveAspectRatio", "xMinYMin meet").attr("viewBox", "-" + adj + " -" + adj + " " + (width + adj *3) + " " + (height + adj*3))
+    .style("padding", padding)
+    .style("margin", margin)
+    .classed("svg-content", true);
+
+//-----------------------------DATA-----------------------------//
+const timeConv = d3.timeParse("%d-%b-%Y");
+const dataset = d3.csv("./data/chart3.csv");
+dataset.then(function(data) {
+    var slices = data.columns.slice(1).map(function(id) {
+        return {
+            id: id,
+            values: data.map(function(d){
+                return {
+                    date: timeConv(d.date),
+                    measurement: +d[id]
+                };
+            })
+        };
+    });
+
+//----------------------------SCALES----------------------------//
+const xScale = d3.scaleTime().range([0,width]);
+const yScale = d3.scaleLinear().rangeRound([height, 0]);
+xScale.domain(d3.extent(data, function(d){
+    return timeConv(d.date)}));
+yScale.domain([(0), d3.max(slices, function(c) {
+    return d3.max(c.values, function(d) {
+        return d.measurement + 4; });
+        })
+    ]);
+
+//-----------------------------AXES-----------------------------//
+const yaxis = d3.axisLeft()
+    .ticks((slices[0].values).length)
+    .scale(yScale);
+
+const xaxis = d3.axisBottom()
+    .ticks(d3.timeDay.every(1))
+    .tickFormat(d3.timeFormat('%b %d'))
+    .scale(xScale);
+
+//----------------------------LINES-----------------------------//
+const line = d3.line()
+    .x(function(d) { return xScale(d.date); })
+    .y(function(d) { return yScale(d.measurement); }); 
+
+let id = 0;
+const ids = function () {
+    return "line-"+id++;
+}  
+//-------------------------2. DRAWING---------------------------//
+//-----------------------------AXES-----------------------------//
+svg.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xaxis);
+
+svg.append("g")
+    .attr("class", "axis")
+    .call(yaxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("dy", ".75em")
+    .attr("y", 6)
+    .style("text-anchor", "end")
+    .text("Frequency");
+
+//----------------------------LINES-----------------------------//
+const lines = svg.selectAll("lines")
+    .data(slices)
+    .enter()
+    .append("g");
+
+    lines.append("path")
+    .attr("class", ids)
+    .attr("d", function(d) { return line(d.values); });
+
+    lines.append("text")
+    .attr("class","serie_label")
+    .datum(function(d) {
+        return {
+            id: d.id,
+            value: d.values[d.values.length - 1]}; })
+    .attr("transform", function(d) {
+            return "translate(" + (xScale(d.value.date) + 10)  
+            + "," + (yScale(d.value.measurement) + 5 ) + ")"; })
+    .attr("x", 5)
+    .text(function(d) { return ("Serie ") + d.id; });
+
+});
+
+
+        }
+
+
+    function MLoop()
+        { 
+        //alert("Made it to the start of JS");
+        
+        // USA Map
+        USA();
+
+        // Chart1
+        Chart1(); 
+
+        // Chart2
+        Chart2();
+
+        // Chart3
+        Chart3();
+
+        //alert("Made it to the end of JS");
+        }
+    </script>
+</head>
+
+<body onload="MLoop()">
+   
+	<div id="mainbar" class="menubar">
+            <table width="100%"><tr><td class="menubarleft"><b>Main</b></td><td class="menubarright"><a href="./Stats.html">Stats</a> | <a href="./Info.html">Info</a>&nbsp;</td></tr></table>
+        </div>
+        <table class="maintable">
+            <tr class="maintr">
+                <td class="maintd">
+                  Section 1
+                  <br/>
+                  <br/>
+                  <label for="game-select">Select a game:</label>
+                  <select id="gameDropdown"></select>  
+                  <br/>
+                  <br/>
+                </td>
+                <td class="maintd" colspan="2"><div id="USAMap"></div></td>
+            </tr>
+            <tr class="mainrow">
+                <td class="maintd" valign="top">
+                   <table width="100%">
+                      <tr>
+                         <td>Some text</td>
+                      </tr>
+                      <tr><td>&nbsp;</td></tr>
+                      <tr>
+                         <td colspan=2>
+                            <div id="Chart1"></div>
+                         </td>
+                      </tr>
+                   </table>
+                <td class="maintd" valign="top">
+                   <table width="100%">
+                      <tr>
+                         <td>
+                           <select name="chart2choices" id="chart2choices">
+                             <option value="AAA">AAA</option>
+                             <option value="BBB">BBB</option>
+                             <option value="CCC">CCC</option>
+                             <option value="DDD">DDD</option>
+                           </select>
+                         </td>
+                      </tr>
+                      <tr><td>&nbsp;</td></tr>
+                      <tr>
+                         <td colspan=2>
+                            <div id="Chart2"></div>
+                         </td>
+                      </tr>
+                      <tr><td>&nbsp;</td></tr>
+                   </table>
+                </td>
+                <td class="maintd" valign="top">
+                   <table width="100%">
+                      <tr>
+                         <td>
+                           <select name="chart3choices" id="chart3choices">
+                             <option value="111">111</option>
+                             <option value="222">222</option>
+                             <option value="333">333</option>
+                             <option value="444">444</option>
+                           </select>
+                         </td>
+                      </tr>
+                      <tr><td>&nbsp;</td></tr>
+                      <tr>
+                         <td colspan=2>
+                            <div id="Chart3"></div>
+                         </td>
+                      </tr>
+                   </table>
+                </td>
+            </tr>
+        </table>
+    
+
+</body>
+
+</html>

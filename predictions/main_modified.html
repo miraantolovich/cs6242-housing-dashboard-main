@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSE6242 - Team 127: Class Project</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>House Market Dynamics</h1>
+    </header>
+    <div class="container">
+        <div id="chart1" class="map-container"></div>
+        <div id="chart2" class="chart"></div>
+        <div id="chart3" class="text">
+            <h3>Instructions:</h3>
+            <p style="text-align: justify; margin-right: 50px;">
+                Please choose a state using the map above. This allows you to see population, employment, and average house price trends for that state. To see the house price projection, pick a specific city in the prediction area.<br>Please give it a few seconds for the model to compute the graph.
+                <br><br>Click anywhere else on the map to reset the chart and start over.
+            </p>
+        </div>
+        <div id="chart4" class="prediction"></div>
+    </div>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+    <script src="house_market_dynamics_script.js"></script>
+</body>
+</html>

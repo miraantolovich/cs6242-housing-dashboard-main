@@ -1,0 +1,10 @@
+        #tooltip {
+            background-color: rgba(0, 0, 0, 0.75);
+            padding: 5px 5px 5px 5px;
+            border-radius: 5px;
+        }
+
+        #tooltip>p {
+            color: white;
+            margin: 0 0 0 0;
+        }

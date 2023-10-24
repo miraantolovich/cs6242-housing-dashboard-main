@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scatter Plot Population/House Price per State 2000-2020</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <div id="chart"></div>
+    <script>
+
+        var margin = { top: 50, right: 120, bottom: 50, left: 120 };
+        var width = 800 - margin.left - margin.right;
+        var height = 500 - margin.top - margin.bottom;
+
+
+        var svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+        // Load the data
+        d3.csv("Population_Price_State_2000_2020.csv", function(d) {
+            return {
+                state: d.State,
+                year: +d.Year,
+                population: +d.Population,
+                average_house_price: +d["AVG Price"].replace('$', '')
+            };
+        }).then(function(data) {
+            data.forEach(function(d) {
+                d.average_house_price = parseFloat(d.average_house_price);
+            });
+
+            var xScale = d3.scaleLinear()
+                .domain(d3.extent(data, function(d) { return d.year; }))
+                .range([0, width]);
+
+            var y1Scale = d3.scaleLinear()
+                .domain(d3.extent(data, function(d) { return d.population; }))
+                .range([height, 0]);
+
+            var y2Scale = d3.scaleLinear()
+                .domain(d3.extent(data, function(d) { return d.average_house_price; }))
+                .range([height, 0]);
+
+            var xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
+            var yAxis1 = d3.axisLeft(y1Scale);
+            var yAxis2 = d3.axisRight(y2Scale);
+
+            svg.append("g")
+                .attr("transform", `translate(0, ${height})`)
+                .call(xAxis);
+
+            svg.append("g")
+                .call(yAxis1);
+
+            svg.append("g")
+                .attr("transform", `translate(${width}, 0)`)
+                .call(yAxis2);
+
+            svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom - 10)
+            .style("text-anchor", "middle")
+            .text("Year");
+
+            svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -margin.left + 20)
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Population");
+
+            svg.append("text")
+            .attr("transform", "rotate(90)")
+            .attr("x", height / 2)
+            .attr("y", -width - margin.right + 40)
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Average House Price ($)");
+
+            svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", -margin.top + 20)
+            .style("text-anchor", "middle")
+            .style("font-size", "18px")
+            .text("Population and Average House Price by State and Year");
+
+            svg.selectAll(".point")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("class", "point")
+            .attr("cx", function(d) { return xScale(d.year); })
+            .attr("cy", function(d) { return y1Scale(d.population); })
+            .attr("r", 4)
+            .style("fill", "blue")
+            .on("mouseover", function(event, d) {
+                d3.select(this).style("fill", "red");
+                tooltip.text(`${d.state} (${d.year}): Pop. ${d.population}, Avg. House Price $${d.average_house_price.toFixed(2)}`)
+                    .style("visibility", "visible");
+            })
+            .on("mouseout", function() {
+                d3.select(this).style("fill", "blue");
+                tooltip.style("visibility", "hidden");
+            });
+
+            var tooltip = svg.append("text")
+                .attr("x", 10)
+                .attr("y", 10)
+                .style("font-size", "12px")
+                .style("fill", "black");
+
+        });
+    </script>
+</body>
+</html>

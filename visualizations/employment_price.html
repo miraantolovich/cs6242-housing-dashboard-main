@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scatter Plot Population/House Price per State 2000-2020</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <div id="chart"></div>
+    <script>
+
+        var margin = { top: 75, right: 120, bottom: 120, left: 120 };
+        var width = 800 - margin.left - margin.right;
+        var height = 500 - margin.top - margin.bottom;
+
+        var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+
+        // Load CSV data
+        d3.csv("Employment_Price_State_2000_2020.csv").then(function(data) {
+            data.forEach(function(d) {
+                d.Employment = +d.Employment;
+                d["AVG Price"] = +d["AVG Price"].replace(/[$,]/g, "");
+            });
+
+            var xScale = d3.scaleLinear()
+                .domain(d3.extent(data, function(d) { return d.Employment; }))
+                .range([0, width]);
+            var yScale = d3.scaleLinear()
+                .domain(d3.extent(data, function(d) { return d["AVG Price"]; }))
+                .range([height, 0]);
+
+            var xAxis = d3.axisBottom(xScale);
+            var yAxis = d3.axisLeft(yScale);
+
+            svg.append("g")
+                .attr("transform", "translate(0, " + height + ")")
+                .call(xAxis)
+                .selectAll("text")
+                .attr("transform", "rotate(-90)")
+                .attr("text-anchor", "end")
+                .attr("dx", "-0.8em")
+                .attr("dy", "0.15em");
+            
+            svg.append("g")
+                .call(yAxis);
+
+            svg.selectAll("circle")
+                .data(data)
+                .join("circle")
+                .attr("cx", function(d) { return xScale(d.Employment); })
+                .attr("cy", function(d) { return yScale(d["AVG Price"]); })
+                .attr("r", 5)
+                .attr("fill", "blue")
+                .on("mouseover", function(event, d) {
+                    d3.select(this).attr("fill", "red");
+                    tooltip.text("State: " + d.State + ", Year: " + d.Year + ", Employment: " + d.Employment + ", AVG Price: $" + d["AVG Price"].toLocaleString())
+                    .style("visibility", "visible");
+                })
+                .on("mouseout", function(event, d) {
+                    d3.select(this).attr("fill", "blue");
+                    tooltip.style("visibility", "hidden");
+                });
+
+
+            var tooltip = svg.append("text")
+                .attr("x", 10)
+                .attr("y", -10)
+                .style("font-size", "12px")
+                .style("fill", "black");
+
+
+            svg.append("text")
+                .attr("x", width / 2)
+                .attr("y", height + margin.bottom / 1.5)
+                .attr("text-anchor", "middle")
+                .text("Employment");
+
+            svg.append("text")
+                .attr("x", width / 2)
+                .attr("y", -margin.top + 20)
+                .style("text-anchor", "middle")
+                .style("font-size", "18px")
+                .text("Employment and Average House Price by State and Year");
+
+            svg.append("text")
+                .attr("x", -height / 2)
+                .attr("y", -margin.left / 2)
+                .attr("text-anchor", "middle")
+                .attr("transform", "rotate(-90)")
+                .text("Average House Price");
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Scatter Plot of House Sales Count and Employment</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+  </head>
+  <body>
+    <script>
+        var margin = {top: 50, right: 30, bottom: 100, left: 100}
+        var width = 800 - margin.left - margin.right
+        var height = 500 - margin.top - margin.bottom
+        
+        var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform","translate(" + margin.left + "," + margin.top + ")");
+            
+        // Load Data
+        d3.csv("US_HouseSalesCount_Employment.csv").then( function(data) {
+
+        data.forEach(function(d) {
+          d.Year = +d.Year;
+          d.HouseSaleCount_sum = +d.HouseSaleCount_sum;
+          d.Employment_sum = +d.Employment_sum;
+        });
+
+        var x = d3.scaleLinear()
+            .domain([d3.min(data, function(d) { return d.Employment_sum; }) - 100000,
+                     d3.max(data, function(d) { return d.Employment_sum; }) + 100000])
+            .range([ 0, width ]);
+        svg.append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x))
+          .selectAll("text")
+          .attr("transform", "rotate(-90) translate(-10,-12.5)")
+          .style("text-anchor", "end");
+
+        var y = d3.scaleLinear()
+            .domain([d3.min(data, function(d) { return d.HouseSaleCount_sum; }) - 10000,
+                    d3.max(data, function(d) { return d.HouseSaleCount_sum; }) + 10000])
+            .range([ height, 0]);
+        svg.append("g")
+          .call(d3.axisLeft(y));
+
+        svg.append('g')
+            .selectAll("dot")
+            .data(data)
+            .enter()
+            .append("circle")
+                .attr("cx", function (d) { return x(d.Employment_sum); } )
+                .attr("cy", function (d) { return y(d.HouseSaleCount_sum); } )
+                .attr("r", 5)
+                .style("fill", "blue")
+                .on("mouseover", function(event, d) {
+                        d3.select(this).style("fill", "red");
+                        tooltip.text("State: " + d.StateName + ", Year: " + d.Year + ", Employment: " + d.Employment_sum + ", Sales Count: " + d.HouseSaleCount_sum.toLocaleString())
+                        .style("visibility", "visible");
+                    })
+                .on("mouseout", function(event, d) {
+                        d3.select(this).style("fill", "blue");
+                    tooltip.style("visibility", "hidden");
+                    });
+            
+        var tooltip = svg.append("text")
+                            .attr("x", 10)
+                            .attr("y", 0)
+                            .style("font-size", "12px")
+                            .style("fill", "black");
+
+        svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("x", width/2)
+            .attr("y", -margin.top/2)
+            .attr("font-size", "18px")
+            .text("Employment and House Sales Count");
+
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("x", margin.right + width/2)
+            .attr("y", height + margin.bottom/1.25)
+            .text("Employment");
+
+        svg.append("text")
+            .attr("text-anchor", "end")
+            .attr("y", -margin.left + 20)
+            .attr("x", -height/2 + margin.bottom)
+            .attr("transform", "rotate(-90)")
+            .text("House Sales Count");
+
+        });
+        
+    </script>
+  </body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" type="text/css" href="./styles/style.css">
+    <link rel="stylesheet" type="text/css" href="./styles/Styles.css">
+    <link rel="stylesheet" type="text/css" href="./styles/ChartStyles.css">
+    <link rel="stylesheet" type="text/css" href="./styles/TipStyles.css">
+
+    <script type="text/javascript" src="./lib/d3.v5.min.js"></script>
+    <script type="text/javascript" src="./lib/topojson.v2.min.js"></script>
+    <script type="text/javascript" src="./lib/d3-tip.min.js"></script>
+    
+    <script defer>
+    function MLoop()
+        { 
+        // alert("Made it to the start of JS");
+        
+        // alert("Made it to the end of JS");
+        }
+    </script>
+</head>
+
+<body onload="MLoop()">
+
+        <!--Top of the page: Project title & page navigation-->
+        <div id="statsbar" class="menubar">
+            <table width="100%" style="border-collapse: collapse"> 
+                <tr >
+                    <td class="proj num">
+                        <p><b>Team 127</b></p>
+                    </td>
+                    <td class="proj title" align="center" style="width: 80%">
+                        <p style="font-size: 20px"><b>Housing Market Dynamics</b></p>
+                    </td>
+                    <td class="menubarright" align="right">
+                        <a href="./main.html">Main</a> |
+                        <b>Stats</b> | 
+                        <a href="./info_edited.html">Info</a>&nbsp;
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <p class="page title" style="font-size: 40px; text-align: center;">
+            <b>Analysis Types and Further Information</b>
+        </p>
+        <p class="definition links" style="text-align: center;">
+            <a href="#tr1">SARIMA</a> | 
+            <a href="#tr2">Trends</a> | 
+            <a href="#tr3">Employment Regression</a> | 
+            <a href="#tr4">Poplulation Regression</a> | 
+            <a href="#tr5">Income Regression</a> 
+            
+        </p>
+        <br/>
+        <!--Meat of the Page: Vocab & Definitions-->
+        <div id="datatable" > 
+           <table width="100%" > 
+
+            <!--Prediction/SARIMA Row-->
+             <tr id="tr1" > 
+                <td style="width:30%" >
+                    <p><b>SARIMA and the Prediction Graph</b></p>
+                    <img src="./images/atl predict.png" width="400" height="300"/>
+                </td>
+                <td>
+                    <p><b><i>What is SARIMA?</i></b> ARIMA or autoregressive integrated moving
+                    average is a forecasting method for univariate time series data. SARIMA is an extension of the
+                     ARIMA method that supports time series data with a seasonal component. On the main page, our prediction 
+                     graph using a SARIMA model displays the historic average house price for metros from 2000 through 
+                    our predicted values for 2024.</p>
+                    <p><b><i>Why did we choose to use SARIMA?</i></b> Through our analysis of the data,
+                    we found that there was a seasonal aspect to monthly house pricing. In addition to this, SARIMA
+                    is typically an easy to understand and interpret model, making it more useful for casual users 
+                    than a complicated model. </p>
+                    <p><b><i>How did we interpret significance of the model?</i></b> Using error metrics like MSE, MAE, 
+                    and RMSE we found that the SARIMA model is not perfectly accurate but the model captured underlying
+                    trends and patterns within the data.</p>
+                <a href="https://en.wikipedia.org/wiki/Mean_squared_error" target="_blank" rel="noopener noreferrer">MSE</a> | 
+                <a href="https://en.wikipedia.org/wiki/Mean_absolute_error" target="_blank" rel="noopener noreferrer">MAE</a> |
+                <a href="https://en.wikipedia.org/wiki/Root-mean-square_deviation" target="_blank" rel="noopener noreferrer">RMSE</a>
+                </td>
+            </tr>
+
+            <!--Trends Row-->
+	         <tr id="tr2" style="background-color: #d3d3d3"> 
+                <td>
+                    <p><b>Housing Market Trends</b></p>
+                    <img src="./images/crime rate.png" width="400" height="300"/> <!--Crime Rate filler image-->
+                </td> 
+                <td>
+                    <p><b><i>What are Trends?</i></b> In analytics, Trends are long-term upward or downward changes
+                    in the average  measured value. For our model on the main page, we showed the trends in regards to 
+                    Employment, Population, and Average Price per state for each year from 2000-2020.</p>
+                    <p><b><i>Why might it be useful to display Trends?</i></b> Housing prices can be heavily
+                    influenced by multiple factors, so showing the factors that have the most weight in regards
+                    to Trends can help a user better understand why our model predicts certain future prices.</p>
+                    <p><b><i>How did you determine these factors were the most influential?</i></b> A regression 
+                    analysis was performed with respect to house pricing and our results below indicated the most 
+                    influential factors in house prices.</p>
+                <a href="https://en.wikipedia.org/wiki/Trend_analysis" target="_blank" rel="noopener noreferrer">Trends</a>
+            </td>
+            </tr>
+
+            <!--Employment Regression Row-->
+             <tr id="tr3">
+                <td>
+                    <p><b>Employment</b></p>
+                    <img src="./images/employ_log.PNG" width="400" height="300"/>
+                </td>
+                <td>
+                    <p><b><i>What is Employment?</i></b></p>
+                    <p><b><i>How is it calculated?</i></b></p>
+                    <p><b><i>What is its impact on the housing market?</i></b></p>
+                    <a href="https://www.bls.gov/ces/" target="_blank" rel="noopener noreferrer">Employment</a>
+                </td>
+            </tr>
+
+            <!--Population Regression Row-->
+             <tr id="tr4" style="background-color: #d3d3d3">
+                <td>
+                    <p><b>Population</b></p>
+                    <img src="./images/pop_log.PNG" width="400" height="300"/>
+                </td>
+                <td>
+                    <p><b><i>What is Population?</i></b></p>
+                    <p><b><i>How is it calculated?</i></b></p>
+                    <p><b><i>What is its impact on the housing market?</i></b></p>
+                    <a href="https://www.google.com/" target="_blank" rel="noopener noreferrer">Population</a>
+                </td>
+            </tr>
+
+            <!--Income Regression Row-->
+             <tr id="tr5">
+                <td>
+                    <p><b>Income</b></p>
+                    <img src="./images/income_log.PNG" width="400" height="300"/>
+                </td>
+                <td>
+                    <p><b><i>What is Income?</i></b></p>
+                    <p><b><i>How is it calculated?</i></b></p>
+                    <p><b><i>What is its impact on the housing market?</i></b></p>
+                    <a href="https://www.google.com/" target="_blank" rel="noopener noreferrer">Income</a>
+                </td>
+            </tr>
+
+            
+           </table>
+           <br/>
+           <a href="#infobar">Back to Top</a>
+        </div>
+  
+</body>
+
+</html>
